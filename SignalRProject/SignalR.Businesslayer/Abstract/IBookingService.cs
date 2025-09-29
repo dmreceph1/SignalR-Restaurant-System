@@ -1,0 +1,15 @@
+﻿using SignalR.EntityLayer.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SignalR.Businesslayer.Abstract
+{
+    public interface IBookingService:IGenericService<Booking>
+    {
+        void TbookingStatusDescriptionApprove(int id);
+        void TbookingStatusDescriptionCancel(int id);
+    }
+}

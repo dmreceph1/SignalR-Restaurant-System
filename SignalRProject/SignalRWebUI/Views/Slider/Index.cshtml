@@ -1,0 +1,62 @@
+﻿@using SignalRWebUI.Dtos.SliderDtos
+@model List<ResultSliderDto>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+}
+
+<div class="content">
+    <div class="container-fluid">
+        <h4 class="page-title">Öne Çıkanlar İşlemleri</h4>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Öne Çıkanlar Listesi</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-sub">
+                            Öne Çıkanlar İle İlgili İşlemleri Aşağıdan Gerçekleştirebilirsiniz.
+                        </div>
+                        <table class="table mt-3 text-center">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Başlık 1</th>
+                                    <th scope="col">Açıklama 1</th>
+                                    <th scope="col">Başlık 2</th>
+                                    <th scope="col">Açıklama 2</th>
+                                    <th scope="col">Başlık 3</th>
+                                    <th scope="col">Açıklama 3</th>
+                                    <th colspan="4" scope="col">Durum</th>
+
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>@item.Title1</td>
+                                        <td>@item.Desscription1</td>
+                                        <td>@item.Title2</td>
+                                        <td>@item.Desscription2</td>
+                                        <td>@item.Title3</td>
+                                        <td>@item.Desscription3</td>
+
+                                        <td><a class="btn btn-outline-danger" href="/Slider/DeleteSlider/@item.SliderID">Sil</a></td>
+                                        <td><a class="btn btn-outline-success" href="/Slider/UpdateSlider/@item.SliderID">Güncelle</a></td>
+                                    </tr>
+                                }
+
+                            </tbody>
+                        </table>
+                        <a href="/Slider/CreateSlider" class="btn btn-outline-primary">Yeni Öne Çıkan Ekle</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+

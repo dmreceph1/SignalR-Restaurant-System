@@ -1,0 +1,98 @@
+﻿@using SignalRWebUI.Dtos.BookingDtos
+@model List<ResultBookingDto>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+    int count = 0;
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/sweetalert2.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js" integrity="sha512-H+rglffZ6f5gF7UJgvH4Naa+fGCgjrHKMgoFOGmcPTRwR6oILo5R+gtzNrpDp7iMV3udbymBVjkeZGNz1Em4rQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+    function CleanData(input){
+        return DOMPurify.sanitize(input);
+    }
+</script>
+
+
+<div class="content">
+    <div class="container-fluid">
+
+        <script type="text/javascript">
+            $(document).ready(() => {
+                var connection = new signalR.HubConnectionBuilder().withUrl("https://localhost:7120/SignalRHub").build();
+
+                connection.start().then(() => {
+                    setInterval(() => {
+                        connection.invoke("GetBookingList");
+                    }, 5000)
+
+                }).catch((err) => { console.log(err) });
+
+                connection.on("ReciveBookingList", (value) => {
+                    let tableHtml = `
+                                            <table class="table mt-3">
+                                            <thead>
+                                             <tr>
+                                             <th scope="col">#</th>
+                                             <th scope="col">Ad Soyad</th>
+                                             <th scope="col">Telefon</th>
+                                             <th scope="col">Kişi Sayısı</th>
+                                             <th scope="col">Rezarvasyon Durumu</th>
+                                             <th scope="col">Sil</th>
+                                             <th scope="col">Güncelle</th>
+                                             <th class="text-center" colspan="2" scope="col">Durum</th>
+                                             </tr>
+                                            </thead>
+                                            <tbody>`
+                    $.each(value, (index, item) => {
+                        tableHtml += `<tr>
+                                             <th>${index + 1}</th>
+                                             <td>${CleanData(item.name)}</td>
+                                             <td>${CleanData(item.phone)}</td>
+                                             <td>${CleanData(item.personCount)}</td>
+                                             <td>${CleanData(item.description)}</td>
+                                             <td><a class="btn btn-outline-danger" href="/Booking/DeleteBooking/${item.bookingID}">Sil</a></td>
+                                             <td><a class="btn btn-outline-dark" href="/Booking/ApproveBooking/${item.bookingID}">Onayla</a></td>
+                                                         <td><a class="btn btn-outline-info" href="/Booking/ApproveCancel/${item.bookingID}">İptal Et</a></td>
+                                             </tr>`
+
+                    });
+                    tableHtml += "</tbody></table>"
+                    $("#bookingList").html(tableHtml);
+                });
+            });
+        </script>
+
+
+        <h4 class="page-title">Rezarvasyon İşlemleri</h4>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Rezarvasyon Listesi</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-sub">
+                            Rezarvasyon İle İlgili İşlemleri Aşağıdan Gerçekleştirebilirsiniz.
+                        </div>
+                        <br />
+                        <a href="/Booking/CreateBooking" class="btn btn-outline-primary">Yeni Rezervasyon Girişi</a>
+
+                        <br />
+                        <div id="bookingList"></div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+

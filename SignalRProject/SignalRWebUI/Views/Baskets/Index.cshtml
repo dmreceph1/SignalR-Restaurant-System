@@ -1,0 +1,267 @@
+﻿@model List<ResultBasketDto>
+@{
+    Layout = null;
+    int count = 0;
+    decimal basketTotalPrice = 0;
+    decimal basketTotalPriceWithTax = 0;
+    decimal tax = 0;
+    decimal totalPrice = 0;
+}
+
+<!DOCTYPE html>
+<html>
+
+@await Component.InvokeAsync("_UILayoutHeadComponentPartial")
+
+<body class="sub_page">
+
+    @await Component.InvokeAsync("_MenuNavbarComponentPartial")
+    <br />
+    <br />
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-12">
+                <nav class="breadcrumb bg-dark mb-30">
+                    <a class="breadcrumb-item text-white" href="/Defaut/Index">Anasayfa</a>
+                    <a class="breadcrumb-item text-white" href="/Menu/Index">Menu</a>
+                    <span class="breadclumb-item text-white" href="#">/Sepetiniz</span>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-lg-8 table-responsive mb-5">
+                <table class="table table-light table-borderless table-hover text-center mb-0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>$</th>
+                            <th>ÜRÜN Adı</th>
+                            <th>Adet</th>
+                            <th>Fiyat</th>
+                            <th>Toplam</th>
+                            <th>Sil</th>
+                        </tr>
+                    </thead>
+                    @{ 
+                        var grouped = Model
+                            .GroupBy(x => new { x.productID, x.ProductName, x.Price })
+                            .Select(g => new {
+                                ProductId = g.Key.productID,
+                                ProductName = g.Key.ProductName,
+                                Price = g.Key.Price,
+                                TotalCount = g.Sum(i => i.Count),
+                                BasketIds = string.Join(",", g.Select(i => i.BasketID))
+                            })
+                            .ToList();
+
+                        basketTotalPrice = grouped.Sum(x => x.Price * x.TotalCount);
+                        tax = basketTotalPrice / 100 * 10;
+                        basketTotalPriceWithTax = basketTotalPrice + tax;
+                    }
+                    @foreach (var g in grouped)
+                    {
+                        count++;
+                        totalPrice = g.Price * g.TotalCount;
+                        <tbody class="align-middle">
+                            <tr data-basket-ids="@g.BasketIds" data-product-id="@g.ProductId">
+                                <td class="align-middle">@count</td>
+                                <td class="align-middle">@g.ProductName</td>
+                                <td class="align-middle js-count">@g.TotalCount</td>
+                                <td class="align-middle js-price">@g.Price</td>
+                                <td class="align-middle js-total">@totalPrice.ToString("0.00")</td>
+                                <td class="align-middle">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a class="btn btn-sm btn-danger btn-decrease" href="#" title="Eksilt"><i class="fa fa-minus"></i></a>
+                                        <a class="btn btn-sm btn-success btn-increase" href="#" title="Arttır"><i class="fa fa-plus"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    }
+                </table>
+            </div>
+            <div class="col-lg-4">
+                <form class="input-group">
+                    <input type="text" id="couponcode" class="form-control border-1 p-4" placeholder="Kupon Kodu" />
+                    <div>
+                        <a style="height:48px;padding-top:11px;margin-left:5px" class="btn btn-warning" id="btncouponcode">Kuponu Uygula</a>
+                    </div>
+                </form>
+                <br />
+                <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-warning pr-3">Sepet Özetiniz</span></h5>
+                <div class="bg-light p-30 mb-5">
+                    <div id="container" class="border-bottom pb-2">
+                        <div class="d-flex justify-content-between mb-6">
+                            <h6>Toplam Tutar</h6>
+                            <h6><span id="totalprice">@basketTotalPrice</span></h6>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <h6 class="font-weight-medium">Kdv Oranı</h6>
+                            <h6 id="kdv" class="font-weight-medium">@tax</h6>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <div class="d-flex justify-content-between mt-2">
+                            <h5>Toplam Tutar:</h5>
+                            <h5><span id="totalpricewithkdv">@basketTotalPriceWithTax</span></h5>
+                        </div>
+                        <br />
+                        <button id="btncheck" class="btn btn-block btn btn-warning font-weight-bold my-3"> Siparişi Tamamla</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <input type="hidden" name="menuTableId" data-menutable value="@TempData["id"]" />
+    @await Component.InvokeAsync("_UILayoutFooterComponentPartial")
+    @await Component.InvokeAsync("_UILayoutScriptComponentPartial")
+    <script>
+        (function () {
+            function normalizeNumber(str) {
+                if (str === null || str === undefined) return 0;
+                var s = String(str).trim();
+                if (s === "") return 0;
+                var hasDot = s.indexOf('.') !== -1;
+                var hasComma = s.indexOf(',') !== -1;
+                if (hasDot && hasComma) {
+                    s = s.replace(/\./g, '');
+                    s = s.replace(/,/g, '.');
+                } else if (!hasDot && hasComma) {
+                    s = s.replace(/,/g, '.');
+                } else {
+                    s = s;
+                }
+                var n = parseFloat(s);
+                return isNaN(n) ? 0 : n;
+            }
+
+            function formatNumberTr(n) {
+                return (Number(n) || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            function recalcTotals() {
+                var rows = document.querySelectorAll("table tbody tr");
+                var subtotal = 0;
+                rows.forEach(function (tr) {
+                    var tds = tr.querySelectorAll("td");
+                    if (tds.length >= 5) {
+                        var totalCellText = tds[4].textContent;
+                        subtotal += normalizeNumber(totalCellText);
+                    }
+                });
+                var tax = subtotal * 0.10;
+                var withTax = subtotal + tax;
+                var elSubtotal = document.getElementById("totalprice");
+                var elTax = document.getElementById("kdv");
+                var elWithTax = document.getElementById("totalpricewithkdv");
+                if (elSubtotal) elSubtotal.textContent = formatNumberTr(subtotal);
+                if (elTax) elTax.textContent = formatNumberTr(tax);
+                if (elWithTax) elWithTax.textContent = formatNumberTr(withTax);
+            }
+
+            function wireDeleteLinks() {
+                var links = document.querySelectorAll(".btn-decrease");
+                links.forEach(function (a) {
+                    a.addEventListener("click", function (e) {
+                        e.preventDefault();
+                        var tr = a.closest("tr");
+                        if (!tr) return;
+                        var basketIdsStr = tr.getAttribute("data-basket-ids") || "";
+                        var ids = basketIdsStr.split(",").filter(Boolean);
+                        if (ids.length === 0) return;
+                        var idToDelete = ids[0];
+                        fetch("/Baskets/DeleteBasket/" + idToDelete, { method: "GET" })
+                            .then(function () {
+                                ids.shift();
+                                if (ids.length === 0) {
+                                    tr.remove();
+                                } else {
+                                    tr.setAttribute("data-basket-ids", ids.join(","));
+                                    var countCell = tr.querySelector(".js-count");
+                                    var priceCell = tr.querySelector(".js-price");
+                                    var totalCell = tr.querySelector(".js-total");
+                                    var price = normalizeNumber(priceCell && priceCell.textContent);
+                                    var currentCount = normalizeNumber(countCell && countCell.textContent);
+                                    var newCount = Math.max(0, currentCount - 1);
+                                    if (countCell) countCell.textContent = newCount;
+                                    if (totalCell) totalCell.textContent = formatNumberTr(price * newCount);
+                                }
+                                recalcTotals();
+                            })
+                            .catch(function () {
+                                window.location.href = "/Baskets/DeleteBasket/" + idToDelete;
+                            });
+                    });
+                });
+            }
+
+            function wireIncreaseLinks() {
+                var links = document.querySelectorAll(".btn-increase");
+                links.forEach(function (a) {
+                    a.addEventListener("click", function (e) {
+                        e.preventDefault();
+                        var tr = a.closest("tr");
+                        if (!tr) return;
+                        var productId = tr.getAttribute("data-product-id");
+                        var menuTableId = document.querySelector('[name="menuTableId"][data-menutable]')?.value || (window.ViewBag && window.ViewBag.v) || 0;
+                        if (!productId) return;
+
+                        fetch("/Menu/AddBasket?id=" + productId + "&menuTableId=" + menuTableId, { method: "POST" })
+                            .then(function (res) {
+                                if (!res.ok) throw new Error();
+                                var basketIdsStr = tr.getAttribute("data-basket-ids") || "";
+                                var ids = basketIdsStr.split(",").filter(Boolean);
+                                ids.push("temp");
+                                tr.setAttribute("data-basket-ids", ids.join(","));
+                                var countCell = tr.querySelector(".js-count");
+                                var priceCell = tr.querySelector(".js-price");
+                                var totalCell = tr.querySelector(".js-total");
+                                var price = normalizeNumber(priceCell && priceCell.textContent);
+                                var currentCount = normalizeNumber(countCell && countCell.textContent);
+                                var newCount = currentCount + 1;
+                                if (countCell) countCell.textContent = newCount;
+                                if (totalCell) totalCell.textContent = formatNumberTr(price * newCount);
+                                recalcTotals();
+                            })
+                            .catch(function () {
+                                window.location.reload();
+                            });
+                    });
+                });
+            }
+
+            document.addEventListener("DOMContentLoaded", function () {
+                wireDeleteLinks();
+                wireIncreaseLinks();
+                var btn = document.getElementById("btncheck");
+                if (btn) {
+                    var clicked = false;
+                    btn.addEventListener("click", function () {
+                        if (clicked) return;
+                        clicked = true;
+                        btn.disabled = true;
+                        btn.classList.add("disabled");
+                        var menuTableId = document.querySelector('[name="menuTableId"][data-menutable]')?.value || 0;
+                        var tableNameEl = document.querySelector('.breadcrumb .breadcrumb-item:last-child');
+                        var tableName = (tableNameEl && tableNameEl.textContent) ? tableNameEl.textContent.trim() : ("Masa-" + menuTableId);
+                        fetch("/Baskets/Checkout", {
+                            method: "POST",
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: "menuTableId=" + encodeURIComponent(menuTableId) + "&tableName=" + encodeURIComponent(tableName)
+                        }).then(function () {
+                            window.location.href = "/Default/Index";
+                        }).catch(function(){
+                            window.location.href = "/Default/Index";
+                        });
+                    });
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

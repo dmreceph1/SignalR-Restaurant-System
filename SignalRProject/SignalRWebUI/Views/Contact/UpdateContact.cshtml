@@ -1,0 +1,62 @@
+﻿@using SignalRWebUI.Dtos.ContactDtos
+@model UpdateContactDto
+@{
+    ViewData["Title"] = "UpdateContact";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+}
+
+<div class="content">
+    <div class="container-fluid">
+        <h4 class="page-title">İletişim Güncelleme</h4>
+        <div class="row">
+            <div class="col-md-12">
+                <form asp-action="UpdateContact" method="post">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">İletişim Güncelleme Sayfası</div>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" asp-for="ContactID" />
+
+                            <div class="form-group">
+                                <label for="Location">Adres</label>
+                                <input type="text" class="form-control" asp-for="Location" id="Location">
+                            </div>
+                            <div class="form-group">
+                                <label for="Phone">Telefon Numarası</label>
+                                <input type="text" class="form-control" asp-for="Phone" id="Phone">
+                            </div>
+                            <div class="form-group">
+                                <label for="Mail">Mail Adresi</label>
+                                <input type="email" class="form-control" asp-for="Mail" id="Mail">
+                            </div>
+                            <div class="form-group">
+                                <label for="FooterTitle">Başlık</label>
+                                <input type="text" class="form-control" asp-for="FooterTitle" id="FooterTitle">
+                            </div>
+                            <div class="form-group">
+                                <label for="OpenDays">Açık Günler</label>
+                                <input type="text" class="form-control" asp-for="OpenDays" id="OpenDays">
+                            </div>
+                            <div class="form-group">
+                                <label for="OpenDescription">Açık Günler Açıklama</label>
+                                <input type="text" class="form-control" asp-for="OpenDescription" id="OpenDescription">
+                            </div>
+                            <div class="form-group">
+                                <label for="OpenHours">Açık Saatler</label>
+                                <input type="text" class="form-control" asp-for="OpenHours" id="OpenHours">
+                            </div>
+                            <div class="form-group">
+                                <label for="afooter">Açıklama</label>
+                                <input type="text" class="form-control" asp-for="FooterDescription" id="afooter">
+                            </div>
+                        </div>
+                        <div class="card-action">
+                            <button class="btn btn-success">Güncelle</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
