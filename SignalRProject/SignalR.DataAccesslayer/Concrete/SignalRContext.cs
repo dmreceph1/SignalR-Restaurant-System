@@ -13,7 +13,7 @@ namespace SignalR.DataAccesslayer.Concrete
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Server=DESKTOP-QAS58M6\\SQLEXPRESS;Initial Catalog=SignalRDb;Integrated Security=True;Encrypt=False");
+            optionsBuilder.UseSqlServer("---SQL CONNECTION---");
 
         }
 
